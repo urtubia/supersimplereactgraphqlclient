@@ -1,5 +1,5 @@
 import { gql, useMutation, useQuery } from '@apollo/client'
-import { Button, IconButton, Stack, TextField, Typography } from '@mui/material'
+import { Button, Divider, IconButton, Stack, TextField, Typography } from '@mui/material'
 import Box from '@mui/material/Box'
 import { useCallback, useState } from 'react'
 import EditIcon from '@mui/icons-material/Edit'
@@ -81,15 +81,26 @@ const Book = ( {bookId, title, updateBookCallback, deleteBookCallback} : BookPro
 
   const sx={
     display: "flex",
+    displayDirection: "column",
     width: "100%",
   }
 
   return <Box key={bookId} sx={sx}>
-    { isEditing ?
-      <Stack direction="row">
-        <TextField variant="standard" 
+    <Stack direction="row" sx={{
+      display: "flex",
+      flexGrow: 1,
+      alignItems: "center",
+    }}>
+    { isEditing ? <>
+        <TextField 
+          variant="standard" 
           onChange={(e) => editingTitleChangeCallback(e)}
           value={editingTitle}
+          multiline={true}
+          sx={{
+            flexGrow: 1,
+            backgroundColor: "#eeeeee",
+          }}
           >
         </TextField>
         <IconButton onClick={acceptEditsCallback}>
@@ -98,18 +109,27 @@ const Book = ( {bookId, title, updateBookCallback, deleteBookCallback} : BookPro
         <IconButton onClick={cancelEditsCallback}>
           <CancelIcon/>
         </IconButton>
-      </Stack>
+        </>
       :
-      <Stack direction="row">
-        <Typography>{title}</Typography>
+      <>
+        <Typography
+          sx={{
+            flexGrow: 1,
+            whiteSpace: "pre-line",
+          }}
+          onClick={startEditingCallback}
+        >
+          {title}
+        </Typography>
         <IconButton onClick={startEditingCallback}>
           <EditIcon/>
         </IconButton>
         <IconButton onClick={() => deleteBookCallback(bookId)} >
           <DeleteIcon/>
         </IconButton>
-      </Stack>
+      </>
     }
+    </Stack>
   </Box>
 }
 
@@ -159,22 +179,46 @@ const AllBooks = () => {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error contacting server</p>;
-  const booksComponent = data.books.map((book: any) => {
-    return <Book key={book.id} bookId={book.id} title={book.title} updateBookCallback={updateBookCallback} deleteBookCallback={deleteBookCallback}/>
-  });
-  return <Box>
-    { booksComponent }
-    <Button variant="contained" onClick={() => addBook({variables: {title: "example"}})}>
-      Add Book
-    </Button>
-  </Box>
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Button 
+        variant="contained"
+        onClick={() => addBook({ variables: { title: "example" } })}
+        sx={{
+          alignSelf: "flex-start",
+        }}
+      >
+        Add Book
+      </Button>
+      {data.books.map((book: any) => {
+        return (
+          <div key={book.id}>
+            <Book
+              bookId={book.id}
+              title={book.title}
+              updateBookCallback={updateBookCallback}
+              deleteBookCallback={deleteBookCallback}
+            />
+            <Divider/>
+          </div>
+        );
+      })}
+      
+    </Box>
+  );
 }
 
 function App() {
 
   return (
     <Box sx={{
-      padding: 2,
+      padding: 5,
     }}>
       <AllBooks />
     </Box>
